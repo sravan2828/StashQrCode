@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white">
+
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/img_qr_code_image"
+
+        android:paddingBottom="50dp"
+        android:layout_gravity="center_horizontal" />
+    <RelativeLayout
+        android:id="@+id/loadingPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center" >
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/circleLoad"
+            android:indeterminate="true" />
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/band"
+        android:layout_alignParentBottom="true">
+        <android.support.v7.widget.AppCompatButton
+            style="@style/Widget.AppCompat.Button.Colored"
+            app:backgroundTint="@color/colorPrimary"
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="Save"/>
+        <EditText
+            android:layout_width="match_parent"
+            android:hint="Enter Email here"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:layout_toLeftOf="@id/saveButton"
+            android:layout_height="wrap_content"
+            android:id="@+id/emailTextBox" />
+
+    </RelativeLayout>
+
+
+
+</RelativeLayout>
