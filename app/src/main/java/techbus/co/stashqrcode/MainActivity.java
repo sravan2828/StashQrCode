@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,6 +16,8 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
+
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
@@ -23,6 +26,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,57 +35,82 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+
     ImageView qrCodeImageview;
     String QRcode;
     public final static int WIDTH=500;
+    static String responseString="000";
+    static String timestamp;
+    String emailtext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button save = (Button) findViewById(R.id.saveButton);
-        EditText email=(EditText)findViewById(R.id.emailTextBox);
+        final EditText email=(EditText)findViewById(R.id.emailTextBox);
         final ProgressBar pb=(ProgressBar)findViewById(R.id.circleLoad);
         save.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 findViewById(R.id.img_qr_code_image).setVisibility(View.GONE);
                 findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-
+                emailtext=email.getText().toString();
+                if(emailtext==""||emailtext==null)
+                {
+                    Toast.makeText(getApplicationContext(), "Please Enter mail", Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+                    timestamp = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+                    String[] stringArray = {"sravan@gmail.com","male",timestamp};
+                    System.out.println("time stamp= "+timestamp);
+                    new MyAsyncTask().execute(stringArray);
+                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                    findViewById(R.id.img_qr_code_image).setVisibility(View.VISIBLE);
+                }
 
             }
         });
         getID();
-// create thread to avoid ANR Exception
+
         Thread t = new Thread(new Runnable() {
             public void run() {
+                while (true) {
 // this is the msg which will be encode in QRcode
-                QRcode="http://stashedphotos.stashcity.com/latest.html";
-                try {
-                    synchronized (this) {
-                        wait(5000);
+                    timestamp = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+                    QRcode = "http://stashedphotos.stashcity.com/latest.html" + "#AppGenKey=" + timestamp;
+                    try {
+                        synchronized (this) {
+                            wait(5000);
 // runOnUiThread method used to do UI task in main thread.
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    Bitmap bitmap = null;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        Bitmap bitmap = null;
 
-                                    bitmap = encodeAsBitmap(QRcode);
-                                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-                                    qrCodeImageview.setImageBitmap(bitmap);
+                                        bitmap = encodeAsBitmap(QRcode);
+                                        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                                        qrCodeImageview.setImageBitmap(bitmap);
 
-                                } catch (WriterException e) {
-                                    e.printStackTrace();
-                                } // end of catch block
+                                    } catch (WriterException e) {
+                                        e.printStackTrace();
+                                    } // end of catch block
 
-                            } // end of run method
-                        });
+                                } // end of run method
+                            });
+
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        Thread.sleep(10000);
+                    } catch (Exception e) {
 
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
 
+                }
 
 
             }
@@ -121,35 +151,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class MyAsyncTask extends AsyncTask<String, Integer, Double> {
-ProgressBar pb = (ProgressBar)findViewById(R.id.circleLoad);
+
+
+        ProgressBar pb = (ProgressBar)findViewById(R.id.circleLoad);
         @Override
         protected Double doInBackground(String... params) {
             // TODO Auto-generated method stub
-            postData(params[0]);
+            postData(params[0],params[1],params[2]);
             return null;
         }
 
         protected void onPostExecute(Double result){
             pb.setVisibility(View.GONE);
-            Toast.makeText(getApplicationContext(), "command sent", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Email Saved", Toast.LENGTH_LONG).show();
+            System.out.println(responseString);
         }
         protected void onProgressUpdate(Integer... progress){
             pb.setProgress(progress[0]);
         }
 
-        public void postData(String valueIWantToSend) {
+        public void postData(String email,String Gender,String AppGenKey) {
             // Create a new HttpClient and Post Header
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://somewebsite.com/receiver.php");
+            HttpPost httppost = new HttpPost("http://sp-as.herokuapp.com/api/users");
 
             try {
                 // Add your data
                 List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-                nameValuePairs.add(new BasicNameValuePair("myHttpData", valueIWantToSend));
+                nameValuePairs.add(new BasicNameValuePair("Email", email));
+                nameValuePairs.add(new BasicNameValuePair("Gender", Gender));
+                nameValuePairs.add(new BasicNameValuePair("AppGenKey", AppGenKey));
                 httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
                 // Execute HTTP Post Request
                 HttpResponse response = httpclient.execute(httppost);
+               // responseString=response.toString();
+                if (response.getStatusLine().getStatusCode() == 200)
+                {
+                    HttpEntity entity = response.getEntity();
+                    responseString = EntityUtils.toString(entity);
+                }
 
             } catch (ClientProtocolException e) {
                 // TODO Auto-generated catch block
