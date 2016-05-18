@@ -25,12 +25,15 @@
             android:id="@+id/circleLoad"
             android:indeterminate="true" />
     </RelativeLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="@color/band"
+        android:id="@+id/actionplace"
         android:layout_alignParentBottom="true">
+
         <android.support.v7.widget.AppCompatButton
             style="@style/Widget.AppCompat.Button.Colored"
             app:backgroundTint="@color/colorPrimary"
@@ -48,8 +51,38 @@
             android:layout_height="wrap_content"
             android:id="@+id/emailTextBox" />
 
+
     </RelativeLayout>
 
+    <RadioGroup
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/actionplace"
+        android:orientation="horizontal"
+        android:background="@color/band"
 
+        android:id="@+id/radioGroup">
+
+
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Male"
+            android:id="@+id/radioButton1"
+            android:checked="true"
+
+            android:textColor="@color/white" />
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Female"
+            android:id="@+id/radioButton"
+            android:layout_toLeftOf="@id/radioButton1"
+            android:checked="false"
+
+            android:textColor="@color/white" />
+
+    </RadioGroup>
 
 </RelativeLayout>

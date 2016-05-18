@@ -5,12 +5,15 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -42,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     static String responseString="000";
     static String timestamp;
     String emailtext;
+    static RadioGroup radioGenderGroup;
+    static RadioButton radioGenderButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,23 +55,37 @@ public class MainActivity extends AppCompatActivity {
         Button save = (Button) findViewById(R.id.saveButton);
         final EditText email=(EditText)findViewById(R.id.emailTextBox);
         final ProgressBar pb=(ProgressBar)findViewById(R.id.circleLoad);
+        radioGenderGroup = (RadioGroup) findViewById(R.id.radioGroup);
         save.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                findViewById(R.id.img_qr_code_image).setVisibility(View.GONE);
-                findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+
                 emailtext=email.getText().toString();
-                if(emailtext==""||emailtext==null)
+                if(TextUtils.isEmpty(emailtext))
                 {
-                    Toast.makeText(getApplicationContext(), "Please Enter mail", Toast.LENGTH_LONG).show();
+
+                    email.setError("Please Enter Email");
+                    return;
+
                 }
                 else
                 {
-                    timestamp = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
-                    String[] stringArray = {"sravan@gmail.com","male",timestamp};
-                    System.out.println("time stamp= "+timestamp);
-                    new MyAsyncTask().execute(stringArray);
-                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-                    findViewById(R.id.img_qr_code_image).setVisibility(View.VISIBLE);
+                    if (isEmailValid(emailtext.trim())) {
+
+
+                        int selectedId=radioGenderGroup.getCheckedRadioButtonId();
+                        radioGenderButton=(RadioButton)findViewById(selectedId);
+
+                        String gender=radioGenderButton.getText().toString();
+                        timestamp = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+                        String[] stringArray = {emailtext, gender, timestamp};
+                        System.out.println("email " + emailtext+"gender "+gender+"timestamp "+timestamp);
+                        System.out.println("time stamp= " + timestamp);
+                        new MyAsyncTask().execute(stringArray);
+                    }
+                    else
+                    {
+                        email.setError("Please Enter Valid Email");
+                    }
                 }
 
             }
@@ -75,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
         Thread t = new Thread(new Runnable() {
             public void run() {
-                while (true) {
+
 // this is the msg which will be encode in QRcode
                     timestamp = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
                     QRcode = "http://stashedphotos.stashcity.com/latest.html" + "#AppGenKey=" + timestamp;
@@ -104,13 +123,9 @@ public class MainActivity extends AppCompatActivity {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    try {
-                        Thread.sleep(10000);
-                    } catch (Exception e) {
 
-                    }
 
-                }
+
 
 
             }
@@ -118,7 +133,9 @@ public class MainActivity extends AppCompatActivity {
         t.start();
 
     }
-
+    boolean isEmailValid(CharSequence email) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
 
     private void getID() {
         qrCodeImageview=(ImageView) findViewById(R.id.img_qr_code_image);
